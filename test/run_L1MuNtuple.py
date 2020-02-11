@@ -20,7 +20,7 @@ options.register('reEmulation',
                  "Run re-emulation")
 
 options.register('doPhase2Emul',
-                 False, #default value
+                 True, #default value
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.bool,
                  "Run the phase 2 re-emulation")
@@ -81,6 +81,8 @@ process.configurationMetadata = cms.untracked.PSet(
 from L1Trigger.L1MuGlobalNtuples.customL1Emu_cff import *
 customL1Emu(process, options)
 
+
+
 print "Using GlobalTag", options.globalTag
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, options.globalTag, '')
@@ -89,7 +91,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 # input source
 process.source = cms.Source("PoolSource",
-                              fileNames = cms.untracked.vstring ("/store/relval/CMSSW_9_3_7/RelValBsToMuMu_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPU-v2/10000/E0FE0A62-B13A-E911-9DFF-AC1F6BAC8158.root"),
+                              fileNames = cms.untracked.vstring (" /store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/20F1E13C-AC58-2848-9F58-F9EDE8477925.root"),
+#                              "/store/relval/CMSSW_9_3_7/RelValBsToMuMu_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPU-v2/10000/E0FE0A62-B13A-E911-9DFF-AC1F6BAC8158.root"),
 #                             fileNames = cms.untracked.vstring ("/store/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TPU140_93X_upgrade2023_realistic_v5-v1/00000/FEB81F89-2239-E811-8D78-0CC47A4DEDD0.root"),
 #                             fileNames = cms.untracked.vstring ("/store/group/upgrade/sandhya/SMP-PhaseIIFall17D-00001.root"),
                              inputCommands = cms.untracked.vstring("keep *", 

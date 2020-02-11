@@ -21,6 +21,7 @@ private:
   void SetBMTFThetaInputs(const edm::Handle<L1MuDTChambThContainer > L1MuDTChambThContainer, int maxDTPrimitives);
   void SetTkMuons(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuons);
   void SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonParticleCollection> muon, int maxTkGlbMuons);
+  void SetTkMuonStubsBMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsBMTF,unsigned int muonDetector);
   void SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks);
   void SetTrkG4Parts(const edm::Handle<TrackingParticleCollection> muon, int maxTrkG4Parts);
 
@@ -36,6 +37,7 @@ private:
   int _maxKBMTFMuons;
   int _maxDTPrimitives;
   int _maxTkMuons;
+  int _maxTkMuonStubsBMTF;
   int _maxTkGlbMuons;
   int _maxTTTracks;
   int _maxTrkG4Parts;
@@ -62,6 +64,11 @@ private:
   std::vector<float> _genmu_pt;
   std::vector<float> _genmu_eta;
   std::vector<float> _genmu_phi;
+  std::vector<short int> _genmu_id;
+  std::vector<short int> _genmu_parent;
+  std::vector<short int> _genmu_charge;
+  std::vector<float> _genmu_dxy;
+  std::vector<float> _genmu_Vz;
   short int _genmu_Nmuons;
 
   //L1 muon
@@ -154,14 +161,35 @@ private:
 
   short int _Kbmtfmu_Nmuons;
 
-  //Tk muon
-  std::vector<float> _tkmu_pt;
-  std::vector<float> _tkmu_eta;
-  std::vector<float> _tkmu_phi;
-  std::vector<float> _tkmu_charge;
-  std::vector<float> _tkmu_tkiso;
+//  //Tk muon
+//  std::vector<float> _tkmu_pt;
+//  std::vector<float> _tkmu_eta;
+//  std::vector<float> _tkmu_phi;
+//  std::vector<float> _tkmu_charge;
+//  std::vector<float> _tkmu_tkiso;
+//
+//  short int _tkmu_Nmuons;
 
-  short int _tkmu_Nmuons;
+   //Tk Muons
+   short int _tkmu_Nmuons;
+   std::vector<double>   _tkmu_pt;
+   std::vector<double>   _tkmu_eta;
+   std::vector<double>   _tkmu_phi;
+   std::vector<int>      _tkmu_charge;
+   std::vector<double> _tkmu_tkiso;
+
+  //TkMuon Stubs
+  short int _tkmuStubsBMTF_Nmuons;
+  std::vector<double>   _tkmuStubsBMTF_pt;
+  std::vector<double>   _tkmuStubsBMTF_eta;
+  std::vector<double>   _tkmuStubsBMTF_phi;
+  std::vector<int>      _tkmuStubsBMTF_charge;
+  //std::vector<int>      _tkmuStubsBMTF_Bx;
+  std::vector<double>   _tkmuStubsBMTF_tkiso;
+  //std::vector<unsigned int>      tkMuonStubsQual;
+  std::vector<double>   _tkmuStubsBMTF_Vz;
+  //std::vector<double>   tkMuonStubsBarrelStubs;
+  //std::vector<unsigned int>   tkMuonStubsRegion;
 
   //Tk Glb muon
   std::vector<float> _tkglbmu_pt;
@@ -200,6 +228,12 @@ private:
   edm::EDGetTokenT<L1MuDTChambPhContainer> _bmtfPhInputToken;
   edm::EDGetTokenT<L1MuDTChambThContainer> _bmtfThInputToken;
   edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonToken;
+  //edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsToken;
+  edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsBMTFToken;
+  //edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsTokenEMTF;
+  //edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsTokenOMTF;
+  //edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsTokenME0;
+  //edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsTokenHSCP;
   edm::EDGetTokenT<l1t::L1TkGlbMuonParticleCollection> _TkGlbMuonToken;
   edm::EDGetTokenT<TTTracksCollection> _TTTracksToken;
   edm::EDGetTokenT<TrackingParticleCollection> _TrkG4PartsToken;
