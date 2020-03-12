@@ -21,6 +21,10 @@ private:
   void SetBMTFThetaInputs(const edm::Handle<L1MuDTChambThContainer > L1MuDTChambThContainer, int maxDTPrimitives);
   void SetTkMuons(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuons);
   void SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonParticleCollection> muon, int maxTkGlbMuons);
+  void SetTkMuonStubsBMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsBMTF,unsigned int muonDetector);
+  void SetTkMuonStubsEMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsEMTF,unsigned int muonDetector);
+  void SetTkMuonStubsOMTF (const  edm::Handle<l1t::BayesMuCorrTrackBxCollection> muon, int maxTkMuonStubsOMTF,unsigned int muonDetector);
+  void SetTkMuonStubs (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubs,unsigned int muonDetector);
   void SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks);
   void SetTrkG4Parts(const edm::Handle<TrackingParticleCollection> muon, int maxTrkG4Parts);
 
@@ -36,6 +40,9 @@ private:
   int _maxKBMTFMuons;
   int _maxDTPrimitives;
   int _maxTkMuons;
+  int _maxTkMuonStubsBMTF;
+  int _maxTkMuonStubsEMTF;
+  int _maxTkMuonStubsOMTF;
   int _maxTkGlbMuons;
   int _maxTTTracks;
   int _maxTrkG4Parts;
@@ -56,12 +63,17 @@ private:
   TTree *_mytree;
 
   int _run_number;
-
+  int tk_nFitParams_=4 ;
   //MC truth
   float _NTruePU;
   std::vector<float> _genmu_pt;
   std::vector<float> _genmu_eta;
   std::vector<float> _genmu_phi;
+  std::vector<short int> _genmu_id;
+  std::vector<short int> _genmu_parent;
+  std::vector<short int> _genmu_charge;
+  std::vector<float> _genmu_dxy;
+  std::vector<float> _genmu_Vz;
   short int _genmu_Nmuons;
 
   //L1 muon
@@ -154,14 +166,56 @@ private:
 
   short int _Kbmtfmu_Nmuons;
 
-  //Tk muon
-  std::vector<float> _tkmu_pt;
-  std::vector<float> _tkmu_eta;
-  std::vector<float> _tkmu_phi;
-  std::vector<float> _tkmu_charge;
-  std::vector<float> _tkmu_tkiso;
+//  //Tk muon
+//  std::vector<float> _tkmu_pt;
+//  std::vector<float> _tkmu_eta;
+//  std::vector<float> _tkmu_phi;
+//  std::vector<float> _tkmu_charge;
+//  std::vector<float> _tkmu_tkiso;
+//
+//  short int _tkmu_Nmuons;
 
-  short int _tkmu_Nmuons;
+   //Tk Muons
+   short int _tkmu_Nmuons;
+   std::vector<double>   _tkmu_pt;
+   std::vector<double>   _tkmu_eta;
+   std::vector<double>   _tkmu_phi;
+   std::vector<int>      _tkmu_charge;
+   std::vector<double> _tkmu_tkiso;
+
+  //TkMuon Stubs
+  short int _tkmuStubsBMTF_Nmuons;
+  std::vector<double>   _tkmuStubsBMTF_pt;
+  std::vector<double>   _tkmuStubsBMTF_eta;
+  std::vector<double>   _tkmuStubsBMTF_phi;
+  std::vector<int>      _tkmuStubsBMTF_charge;
+  std::vector<double>   _tkmuStubsBMTF_tkiso;
+  std::vector<double>   _tkmuStubsBMTF_Vz;
+
+  short int _tkmuStubsEMTF_Nmuons;
+  std::vector<double>   _tkmuStubsEMTF_pt;
+  std::vector<double>   _tkmuStubsEMTF_eta;
+  std::vector<double>   _tkmuStubsEMTF_phi;
+  std::vector<int>      _tkmuStubsEMTF_charge;
+  std::vector<double>   _tkmuStubsEMTF_tkiso;
+  std::vector<double>   _tkmuStubsEMTF_Vz;
+
+
+  short int _tkmuStubsOMTF_Nmuons;
+  std::vector<double>   _tkmuStubsOMTF_pt;
+  std::vector<double>   _tkmuStubsOMTF_eta;
+  std::vector<double>   _tkmuStubsOMTF_phi;
+  std::vector<int>      _tkmuStubsOMTF_charge;
+  std::vector<double>   _tkmuStubsOMTF_tkiso;
+  std::vector<double>   _tkmuStubsOMTF_Vz;
+
+  short int _tkmuStubs_Nmuons;
+  std::vector<double>   _tkmuStubs_pt;
+  std::vector<double>   _tkmuStubs_eta;
+  std::vector<double>   _tkmuStubs_phi;
+  std::vector<int>      _tkmuStubs_charge;
+  std::vector<double>   _tkmuStubs_tkiso;
+  std::vector<double>   _tkmuStubs_Vz;
 
   //Tk Glb muon
   std::vector<float> _tkglbmu_pt;
@@ -177,6 +231,8 @@ private:
   std::vector<float> _tttracks_eta;
   std::vector<float> _tttracks_phi;
   std::vector<float> _tttracks_chi2;  
+  std::vector<float> _tttracks_z0; 
+  std::vector<float> _tttracks_bendchi2;
 
   short int _tttracks_Nmuons;
 
@@ -200,9 +256,14 @@ private:
   edm::EDGetTokenT<L1MuDTChambPhContainer> _bmtfPhInputToken;
   edm::EDGetTokenT<L1MuDTChambThContainer> _bmtfThInputToken;
   edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonToken;
+  edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsToken;
+  edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsBMTFToken;
+  edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsEMTFToken;
+  edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsOMTFToken;
+  //edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsTokenME0;
+  //edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsTokenHSCP;
   edm::EDGetTokenT<l1t::L1TkGlbMuonParticleCollection> _TkGlbMuonToken;
   edm::EDGetTokenT<TTTracksCollection> _TTTracksToken;
   edm::EDGetTokenT<TrackingParticleCollection> _TrkG4PartsToken;
-  
 
 };

@@ -4,7 +4,7 @@ config = Configuration()
 
 config.section_('General')
 config.General.transferOutputs = True
-config.General.workArea = 'crab_projects/samples_MC_phase2/'
+config.General.workArea = 'crab_projects/WToTauTo3Mu_samples_MC_phase2_Automatic_AddTTtracksVars_fixBug_FixGen/Tag_l1t-phase2-v2p37p1/PU200'
 
 config.section_('JobType')
 config.JobType.psetName = '../run_L1MuNtuple.py'
@@ -13,13 +13,13 @@ config.JobType.outputFiles = ['L1MuPhase2Ntuple_output.root']
 config.JobType.pyCfgParams = ['doPhase2Emul=True']
 
 config.section_('Data')
-config.Data.splitting = 'FileBased'
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.splitting = 'Automatic'
+config.Data.outLFNDirBase = '/store/user/%s/WToTauTo3Mu_GlobalMuonNTuples_FixGen/Tag_l1t-phase2-v2p37p1/PU200' % (getUsernameFromSiteDB())
 config.Data.publication = False
 
 config.section_('Site')
-config.Site.storageSite = 'T2_IT_Legnaro'
-#config.Site.storageSite = 'T2_CH_CERN'
+#config.Site.storageSite = 'T2_IT_Legnaro'
+config.Site.storageSite = 'T2_CH_CERN'
 
 if __name__ == '__main__':
 
@@ -40,23 +40,25 @@ if __name__ == '__main__':
     ## From now on that's what users should modify: this is the a-la-CRAB2 configuration part. ##
     #############################################################################################
     
-    config.General.requestName = 'L1MuPhase2Ntuples_SingleNu_PU200'
-    config.Data.unitsPerJob = 3
-    config.Data.inputDataset = '/SingleNeutrino/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
+    config.General.requestName = 'L1MuPhase2Ntuples_WToTauTo3Mu_PU200'
+    #config.Data.unitsPerJob = 300
+    config.Data.inputDataset = '/WToTauTo3Mu_TuneCP5_14TeV-pythia8/PhaseIITDRSpring19DR-PU200_106X_upgrade2023_realistic_v3-v1/GEN-SIM-DIGI-RAW'
+    #'/WToTauTo3Mu_TuneCP5_14TeV-pythia8/PhaseIITDRSpring19DR-NoPU_106X_upgrade2023_realistic_v3-v1/GEN-SIM-DIGI-RAW'
+
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
 
-    config.General.requestName = 'L1MuPhase2Ntuples_SingleMuPt2to100_PU140'
-    config.Data.unitsPerJob = 3
-    config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU140_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
-    p = Process(target=submit, args=(config,))
-    p.start()
-    p.join()
+    #config.General.requestName = 'L1MuPhase2Ntuples_SingleMuPt2to100_PU140'
+    #config.Data.unitsPerJob = 3
+    #config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU140_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
+    #p = Process(target=submit, args=(config,))
+    #p.start()
+    #p.join()
 
-    config.General.requestName = 'L1MuPhase2Ntuples_SingleMuPt2to100_PU200'
-    config.Data.unitsPerJob = 3
-    config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
-    p = Process(target=submit, args=(config,))
-    p.start()
-    p.join()
+    #config.General.requestName = 'L1MuPhase2Ntuples_SingleMuPt2to100_PU200'
+    #config.Data.unitsPerJob = 3
+    #config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
+    #p = Process(target=submit, args=(config,))
+    #p.start()
+    #p.join()

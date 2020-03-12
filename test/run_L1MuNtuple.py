@@ -20,7 +20,7 @@ options.register('reEmulation',
                  "Run re-emulation")
 
 options.register('doPhase2Emul',
-                 False, #default value
+                 True, #default value
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.bool,
                  "Run the phase 2 re-emulation")
@@ -56,8 +56,10 @@ process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+#process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
+#process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
@@ -67,7 +69,8 @@ process.load('L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff')
 
 process.L1TrackTrigger_step = cms.Path(process.L1TrackletTracksWithAssociators)
 process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
-
+#process.L1TrackTrigger_step = cms.Path(process.offlineBeamSpot*process.TTTracksFromTrackletEmulation)
+#process.VertexProducer.l1TracksInputTag =  cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
 
 
 # Production Info
@@ -89,7 +92,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 # input source
 process.source = cms.Source("PoolSource",
-                             fileNames = cms.untracked.vstring ("root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/Mu_FlatPt2to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/60000/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root"),
+                             fileNames = cms.untracked.vstring ("/store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v1/240000/F8F18CA1-4F51-2046-9A37-9BAD13CD84CF.root"),
+#"root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/Mu_FlatPt2to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/60000/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root"),
                              inputCommands = cms.untracked.vstring("keep *", 
                                                                    "drop l1tHGCalTowerMapBXVector_hgcalTriggerPrimitiveDigiProducer_towerMap_HLT",
                                                                    "drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT",
@@ -112,7 +116,7 @@ process.ntuplizer = cms.Path(process.L1MuGlobalNtupleMaker)
 
 # Output file
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string("L1MuPhase2Ntuple_output.root")
+                                   fileName = cms.string("TestGeometryD41_L1MuPhase2Ntuple_output.root")
                                    )
 
 

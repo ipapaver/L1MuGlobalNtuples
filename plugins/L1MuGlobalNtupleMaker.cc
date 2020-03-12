@@ -37,11 +37,12 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
  
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
-
+#include "DataFormats/L1TMuon/interface/BayesMuCorrelatorTrack.h"
 typedef math::XYZTLorentzVector LorentzVector;
 typedef vector<TTTrack<edm::Ref<edm::DetSetVector<Phase2TrackerDigi>,Phase2TrackerDigi,edm::refhelper::FindForDetSetVector<Phase2TrackerDigi> > > > TTTracksCollection;
 
 #include "L1MuGlobalNtupleMaker.h"
+
  
 // constructors and destructor
 L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
@@ -56,6 +57,10 @@ L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
   _maxKBMTFMuons(iConfig.getParameter<int>("maxKBMTFMuons")),
   _maxDTPrimitives(iConfig.getParameter<int>("maxDTPrimitives")),
   _maxTkMuons(iConfig.getParameter<int>("maxTkMuons")),
+  //_maxTkMuonStubs(iConfig.getParameter<int>("maxTkMuonStubs")),
+  _maxTkMuonStubsBMTF(iConfig.getParameter<int>("maxTkMuonStubs")),
+  _maxTkMuonStubsEMTF(iConfig.getParameter<int>("maxTkMuonStubs")),
+  _maxTkMuonStubsOMTF(iConfig.getParameter<int>("maxTkMuonStubs")),
   _maxTkGlbMuons(iConfig.getParameter<int>("maxTkGlbMuons")),
   _maxTTTracks(iConfig.getParameter<int>("maxTTTracks")),
   _maxTrkG4Parts(iConfig.getParameter<int>("maxTrkG4Parts")),
@@ -68,11 +73,20 @@ L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
   _bmtfPhInputToken(consumes<L1MuDTChambPhContainer>(iConfig.getParameter<edm::InputTag>("bmtfInputPhMuon"))),
   _bmtfThInputToken(consumes<L1MuDTChambThContainer>(iConfig.getParameter<edm::InputTag>("bmtfInputThMuon"))),
   _TkMuonToken(consumes<l1t::L1TkMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkMuon"))),
+  _TkMuonStubsBMTFToken(consumes<l1t::L1TkMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkMuonStubsBMTF"))),
+  _TkMuonStubsEMTFToken(consumes<l1t::L1TkMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkMuonStubsEMTF"))),
+  _TkMuonStubsOMTFToken(consumes<l1t::BayesMuCorrTrackBxCollection>(iConfig.getParameter<edm::InputTag>("tkMuonStubsOMTF"))),
+  //_TkMuonStubsToken(consumes<l1t::L1TkMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkMuonStubs"))),
   _TkGlbMuonToken(consumes<l1t::L1TkGlbMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkGlbMuon"))),
-  _TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("tttracks"))),
+
+  //_TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))),
+
+  //ttTrackToken_(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))),
+ _TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("tttracks"))),
   _TrkG4PartsToken(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trkG4Parts")))
 {
   _pileupSummaryToken = consumes<std::vector<PileupSummaryInfo> >(edm::InputTag(_PileupSrc));
+
 
   _h_Global_Info = fs->make<TH1F>("h_Global_Info", "General information about the sample", 8, 0., 8.);
   _Nevents_processed = 0;
@@ -105,6 +119,11 @@ void L1MuGlobalNtupleMaker::create_trees()
   _mytree->Branch("genmu_pt",&_genmu_pt);
   _mytree->Branch("genmu_eta",&_genmu_eta);
   _mytree->Branch("genmu_phi",&_genmu_phi);
+  _mytree->Branch("genmu_id", &_genmu_id);
+  _mytree->Branch("genmu_parent", &_genmu_parent);
+  _mytree->Branch("genmu_charge", &_genmu_charge);
+  _mytree->Branch("genmu_dxy", &_genmu_dxy);
+  _mytree->Branch("genmu_Vz", &_genmu_Vz);
 
   _mytree->Branch("genmu_Nmuons",&_genmu_Nmuons);
 
@@ -208,6 +227,51 @@ void L1MuGlobalNtupleMaker::create_trees()
 
   _mytree->Branch("tkmu_Nmuons",&_tkmu_Nmuons);
 
+  //TkMuStubs BMTF muons
+  _mytree->Branch("tkmuStubsBMTF_pt",&_tkmuStubsBMTF_pt);
+  _mytree->Branch("tkmuStubsBMTF_eta",&_tkmuStubsBMTF_eta);
+  _mytree->Branch("tkmuStubsBMTF_phi",&_tkmuStubsBMTF_phi);
+  _mytree->Branch("tkmuStubsBMTF_charge",&_tkmuStubsBMTF_charge);
+  _mytree->Branch("tkmuStubsBMTF_tkiso",&_tkmuStubsBMTF_tkiso);
+  _mytree->Branch("tkmuStubsBMTF_Vz", &_tkmuStubsBMTF_Vz);
+  //_mytree->Branch("tkmuStubsBMTF_charge", &_tkmuStubsBMTF_charge);
+
+  _mytree->Branch("tkmuStubsBMTF_Nmuons",&_tkmuStubsBMTF_Nmuons);
+
+  //TkMuStubs OMTF muons
+  _mytree->Branch("tkmuStubsOMTF_pt",&_tkmuStubsOMTF_pt);
+  _mytree->Branch("tkmuStubsOMTF_eta",&_tkmuStubsOMTF_eta);
+  _mytree->Branch("tkmuStubsOMTF_phi",&_tkmuStubsOMTF_phi);
+  _mytree->Branch("tkmuStubsOMTF_charge",&_tkmuStubsOMTF_charge);
+  _mytree->Branch("tkmuStubsOMTF_tkiso",&_tkmuStubsOMTF_tkiso);
+  _mytree->Branch("tkmuStubsOMTF_Vz", &_tkmuStubsOMTF_Vz);
+  //_mytree->Branch("tkmuStubsOMTF_charge", &_tkmuStubsOMTF_charge);
+
+  _mytree->Branch("tkmuStubsOMTF_Nmuons",&_tkmuStubsOMTF_Nmuons);
+
+  //TkMuStubs EMTF muons
+  _mytree->Branch("tkmuStubsEMTF_pt",&_tkmuStubsEMTF_pt);
+  _mytree->Branch("tkmuStubsEMTF_eta",&_tkmuStubsEMTF_eta);
+  _mytree->Branch("tkmuStubsEMTF_phi",&_tkmuStubsEMTF_phi);
+  _mytree->Branch("tkmuStubsEMTF_charge",&_tkmuStubsEMTF_charge);
+  _mytree->Branch("tkmuStubsEMTF_tkiso",&_tkmuStubsEMTF_tkiso);
+  _mytree->Branch("tkmuStubsEMTF_Vz", &_tkmuStubsEMTF_Vz);
+  //_mytree->Branch("tkmuStubsEMTF_charge", &_tkmuStubsEMTF_charge);
+
+  _mytree->Branch("tkmuStubsEMTF_Nmuons",&_tkmuStubsEMTF_Nmuons);
+
+
+  //TkMuStubs muons
+  _mytree->Branch("tkmuStubs_pt",&_tkmuStubs_pt);
+  _mytree->Branch("tkmuStubs_eta",&_tkmuStubs_eta);
+  _mytree->Branch("tkmuStubs_phi",&_tkmuStubs_phi);
+  _mytree->Branch("tkmuStubs_charge",&_tkmuStubs_charge);
+  _mytree->Branch("tkmuStubs_tkiso",&_tkmuStubs_tkiso);
+  _mytree->Branch("tkmuStubs_Vz", &_tkmuStubs_Vz);
+  //_mytree->Branch("tkmuStubs_charge", &_tkmuStubs_charge);
+
+  _mytree->Branch("tkmuStubs_Nmuons",&_tkmuStubs_Nmuons);
+
   //Track global muons
   _mytree->Branch("tkglbmu_pt",&_tkglbmu_pt);
   _mytree->Branch("tkglbmu_eta",&_tkglbmu_eta);
@@ -222,6 +286,14 @@ void L1MuGlobalNtupleMaker::create_trees()
   _mytree->Branch("tttracks_eta",&_tttracks_eta);
   _mytree->Branch("tttracks_phi",&_tttracks_phi);
   _mytree->Branch("tttracks_chi2",&_tttracks_chi2);
+  //_mytree->Branch("tttracks_d0",&_tttracks_d0);
+  _mytree->Branch("tttracks_z0",&_tttracks_z0);
+  _mytree->Branch("tttracks_bendchi2",&_tttracks_bendchi2);
+  //_mytree->Branch("tttracks_nstubs",&_tttracks_nstubs);
+  //_mytree->Branch("tttracks_lhits",&_tttracks_lhits);
+  //_mytree->Branch("tttracks_seeds",&_tttracks_seeds);
+  //_mytree->Branch("tttracks_genuine",&_tttracks_genuine);
+  //_mytree->Branch("tttracks_loose",&_tttracks_loose);
 
   _mytree->Branch("tttracks_Nmuons",&_tttracks_Nmuons);
 
@@ -263,9 +335,16 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<L1MuDTChambPhContainer > L1MuDTChambPhContainer;
   edm::Handle<L1MuDTChambThContainer > L1MuDTChambThContainer;
   edm::Handle<l1t::L1TkMuonParticleCollection> TkMuon;
+ 
+  edm::Handle<l1t::L1TkMuonParticleCollection> TkMuonStubsBMTF;
+  edm::Handle<l1t::L1TkMuonParticleCollection> TkMuonStubsEMTF;
+  edm::Handle<l1t::BayesMuCorrTrackBxCollection> TkMuonStubsOMTF;
   edm::Handle<l1t::L1TkGlbMuonParticleCollection> TkGlbMuon;
   edm::Handle<TTTracksCollection> Tttrack;
   edm::Handle<TrackingParticleCollection> TrkG4Part;
+
+  //edm::Handle< TTTrackAssociationMap<Ref_Phase2TrackerDigi_> MCTruthTTTrackHandle;
+  //iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
 
   iEvent.getByToken(_genParticleToken, genParticles);
   iEvent.getByToken(_L1MuonToken,      L1muon);
@@ -276,6 +355,10 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(_bmtfPhInputToken, L1MuDTChambPhContainer);
   iEvent.getByToken(_bmtfThInputToken, L1MuDTChambThContainer);
   iEvent.getByToken(_TkMuonToken,      TkMuon);
+  iEvent.getByToken(_TkMuonStubsBMTFToken,TkMuonStubsBMTF);
+  iEvent.getByToken(_TkMuonStubsEMTFToken,TkMuonStubsEMTF);
+  iEvent.getByToken(_TkMuonStubsOMTFToken,TkMuonStubsOMTF);
+  //iEvent.getByToken(_TkMuonStubsToken, TkMuonStubs);
   iEvent.getByToken(_TkGlbMuonToken,   TkGlbMuon);
   iEvent.getByToken(_TTTracksToken,    Tttrack);
   iEvent.getByToken(_TrkG4PartsToken,  TrkG4Part);
@@ -325,16 +408,44 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
   } else {
     edm::LogWarning("MissingProduct") << "L1 Phase2 TkMuons not found. Branch will not be filled" << std::endl;
   }
+  cout << "The tkMuStub BMTF is Valid is: " << TkMuonStubsBMTF.isValid() << endl;
+  if (TkMuonStubsBMTF.isValid()){
+      SetTkMuonStubsBMTF(TkMuonStubsBMTF, _maxTkMuonStubsBMTF,1);
+      SetTkMuonStubs(TkMuonStubsBMTF, _maxTkMuonStubsBMTF,1);
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMuonStubsBMTF not found. Branch will not be filled" << std::endl;
+  }
+  if (TkMuonStubsOMTF.isValid()){
+      SetTkMuonStubsOMTF(TkMuonStubsOMTF, _maxTkMuonStubsOMTF, 2);
+      //SetTkMuonStubs(TkMuonStubsOMTF, _maxTkMuonStubsOMTF, 2);
+
+  } else {
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMuonStubsOMTF not found. Branch will not be filled" << std::endl;
+  }
+  if (TkMuonStubsEMTF.isValid()){
+      SetTkMuonStubsEMTF(TkMuonStubsEMTF, _maxTkMuonStubsEMTF, 3);
+      SetTkMuonStubs(TkMuonStubsEMTF, _maxTkMuonStubsEMTF, 3);
+    } else{
+    edm::LogWarning("MissingProduct") << "L1PhaseII TkMuonStubsEMTF not found. Branch will not be filled" << std::endl;
+  }
+
   if(TkGlbMuon.isValid()){
     SetTkGlbMuons(TkGlbMuon, _maxTkGlbMuons);
   } else {
     edm::LogWarning("MissingProduct") << "L1 Phase2 TkGlbMuons not found. Branch will not be filled" << std::endl;
   }
+  cout <<"The output of Tttrack is Valid is: " << Tttrack.isValid() << endl; 
   if(Tttrack.isValid()){
     SetTTTracks(Tttrack, _maxTTTracks);
-  } else{
+  }
+   else{
     edm::LogWarning("MissingProduct") << "L1 Phase2 Tttrack not found. Branch will not be filled" << std::endl;
   }
+  //if(TTTrackHandle.isValid()){
+  //  SetTTTracks(TTTrackHandle, _maxTTTracks);
+  // } else{
+  //   edm::LogWarning("MissingProduct") << "L1 Phase2 Tttrack not found. Branch will not be filled" << std::endl;
+  //}
   if(TrkG4Part.isValid()){
     SetTrkG4Parts(TrkG4Part, _maxTrkG4Parts);
   } else{
@@ -376,6 +487,11 @@ void L1MuGlobalNtupleMaker::SetGenMuons(const edm::Handle<reco::GenParticleColle
   _genmu_pt.clear();
   _genmu_eta.clear();
   _genmu_phi.clear();
+  _genmu_id.clear();
+  _genmu_parent.clear();
+  _genmu_charge.clear();
+  _genmu_dxy.clear();
+  _genmu_Vz.clear();
 
   _genmu_Nmuons = 0;
 
@@ -383,10 +499,35 @@ void L1MuGlobalNtupleMaker::SetGenMuons(const edm::Handle<reco::GenParticleColle
     const reco::GenParticle & p = (*genParticles)[i];
     int id = p.pdgId();
     if(fabs(id) != 13) continue;
+    // See if the parent was interesting
+    int parentID = -10000;
+    unsigned int nMo=p.numberOfMothers();
+    for(unsigned int i=0;i<nMo;++i){
+      int thisParentID = dynamic_cast
+        <const reco::GenParticle*>(p.mother(i))->pdgId();
+        int hundredsIndex = abs(thisParentID)/100;
+        int thousandsIndex = abs(thisParentID)/1000;
+        if ( ((abs(thisParentID) >= 23) &&
+              (abs(thisParentID) <= 25)) ||
+             (abs(thisParentID) == 6) ||
+             (hundredsIndex == 5) ||
+             (hundredsIndex == 4) ||
+             (thousandsIndex == 5) ||
+             (thousandsIndex == 4)
+             )
+          parentID = thisParentID;
+      }
+      if ((parentID == -10000) && (nMo > 0))
+        parentID = dynamic_cast
+          <const reco::GenParticle*>(p.mother(0))->pdgId();
 
     _genmu_pt.push_back(p.pt());
     _genmu_eta.push_back(p.eta());
     _genmu_phi.push_back(p.phi());
+    _genmu_id.push_back(p.pdgId());
+    _genmu_parent.push_back(parentID);
+    _genmu_dxy.push_back(-p.vertex().x()*sin(p.phi()) + p.vertex().y()*cos(p.phi()));
+    _genmu_Vz.push_back(p.vertex().x());
 
     _genmu_Nmuons++;
   }
@@ -668,6 +809,9 @@ void L1MuGlobalNtupleMaker::SetBMTFThetaInputs(const edm::Handle<L1MuDTChambThCo
 
 void L1MuGlobalNtupleMaker::SetTkMuons(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuons)
 {
+      cout << "****** The max tkMu number is " << maxTkMuons << endl;
+
+
   _tkmu_pt.clear();
   _tkmu_eta.clear();
   _tkmu_phi.clear();
@@ -677,6 +821,9 @@ void L1MuGlobalNtupleMaker::SetTkMuons(const edm::Handle<l1t::L1TkMuonParticleCo
   _tkmu_Nmuons = 0;
 
   for (l1t::L1TkMuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end() && _tkmu_Nmuons < maxTkMuons; it++){
+      //cout << "***!!! the max muon num is" << _tkmu_Nmuons <<   endl;
+      //cout << "***!!! The first it is " << it->eta() <<   endl;
+
 
     if (it->pt() > 0){
       _tkmu_pt.push_back(it->pt());
@@ -690,6 +837,125 @@ void L1MuGlobalNtupleMaker::SetTkMuons(const edm::Handle<l1t::L1TkMuonParticleCo
     }
   }
 
+}
+
+
+void L1MuGlobalNtupleMaker::SetTkMuonStubsBMTF(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubs, unsigned int muonDetector)
+{
+      cout << "****** The max tkMuStub number is " << maxTkMuonStubs << endl;
+      _tkmuStubsBMTF_pt.clear();
+      _tkmuStubsBMTF_eta.clear();
+      _tkmuStubsBMTF_phi.clear();
+      _tkmuStubsBMTF_charge.clear();
+      _tkmuStubsBMTF_tkiso.clear();
+      _tkmuStubsBMTF_Vz.clear();
+      _tkmuStubsBMTF_Nmuons=0;
+
+  for(l1t::L1TkMuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end() && _tkmuStubsBMTF_Nmuons < maxTkMuonStubs; it++){
+    //if (muonDetector==1 && fabs(it->eta())>=0.9) continue;
+    //if (muonDetector==3 && fabs(it->eta())<1.2) continue;
+
+    if (it->pt() > 0 && fabs(it->eta())>=0 && fabs(it->eta())<0.8){
+      _tkmuStubsBMTF_pt.push_back(it->pt());
+      _tkmuStubsBMTF_eta.push_back(it->eta());
+      _tkmuStubsBMTF_phi.push_back(it->phi());
+      _tkmuStubsBMTF_charge.push_back(it->charge());
+      _tkmuStubsBMTF_tkiso.push_back(it->getTrkIsol());
+      _tkmuStubsBMTF_Vz.push_back(it->getTrkzVtx());
+      
+      _tkmuStubsBMTF_Nmuons++;
+
+    }
+
+  }
+}
+
+void L1MuGlobalNtupleMaker::SetTkMuonStubsEMTF(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubs, unsigned int muonDetector)
+{
+      _tkmuStubsEMTF_pt.clear();
+      _tkmuStubsEMTF_eta.clear();
+      _tkmuStubsEMTF_phi.clear();
+      _tkmuStubsEMTF_charge.clear();
+      _tkmuStubsEMTF_tkiso.clear();
+      _tkmuStubsEMTF_Vz.clear();
+      _tkmuStubsEMTF_Nmuons=0;
+
+  for(l1t::L1TkMuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end() && _tkmuStubsEMTF_Nmuons < maxTkMuonStubs; it++){
+    //if (muonDetector==1 && fabs(it->eta())>=0.9) continue;
+    //if (muonDetector==3 && fabs(it->eta())<1.2) continue;
+
+    if (it->pt() > 0 && fabs(it->eta())>=1.2 && fabs(it->eta())<=2.4){
+      _tkmuStubsEMTF_pt.push_back(it->pt());
+      _tkmuStubsEMTF_eta.push_back(it->eta());
+      _tkmuStubsEMTF_phi.push_back(it->phi());
+      _tkmuStubsEMTF_charge.push_back(it->charge());
+      _tkmuStubsEMTF_tkiso.push_back(it->getTrkIsol());
+      _tkmuStubsEMTF_Vz.push_back(it->getTrkzVtx());
+      
+      _tkmuStubsEMTF_Nmuons++;
+
+    }
+
+  }
+}
+
+void L1MuGlobalNtupleMaker::SetTkMuonStubsOMTF(const edm::Handle<l1t::BayesMuCorrTrackBxCollection> muon, int maxTkMuonStubs, unsigned int muonDetector)
+{
+      _tkmuStubsOMTF_pt.clear();
+      _tkmuStubsOMTF_eta.clear();
+      _tkmuStubsOMTF_phi.clear();
+      _tkmuStubsOMTF_charge.clear();
+      _tkmuStubsOMTF_tkiso.clear();
+      _tkmuStubsOMTF_Vz.clear();
+      _tkmuStubsOMTF_Nmuons=0;
+  for (int ibx = muon->getFirstBX(); ibx <= muon->getLastBX(); ++ibx) {
+  for(l1t::BayesMuCorrTrackBxCollection::const_iterator it=muon->begin(); it!=muon->end() && _tkmuStubsOMTF_Nmuons < maxTkMuonStubs; it++){
+    //if (muonDetector==1 && fabs(it->eta())>=0.9) continue;
+    //if (muonDetector==3 && fabs(it->eta())<1.2) continue;
+
+    if (it->pt() > 0 && fabs(it->eta())>=0.8 && fabs(it->eta())<1.2){
+      _tkmuStubsOMTF_pt.push_back(it->pt());
+      _tkmuStubsOMTF_eta.push_back(it->eta());
+      _tkmuStubsOMTF_phi.push_back(it->phi());
+      _tkmuStubsOMTF_charge.push_back( pow(-1,it->hwSign() ) );
+      _tkmuStubsOMTF_tkiso.push_back(0);
+      _tkmuStubsOMTF_Vz.push_back(it->getTtTrackPtr()->getPOCA(tk_nFitParams_).z());
+      
+      _tkmuStubsOMTF_Nmuons++;
+
+    }
+
+  }
+ }
+}
+
+void L1MuGlobalNtupleMaker::SetTkMuonStubs(const edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubs, unsigned int muonDetector)
+{
+      _tkmuStubs_pt.clear();
+      _tkmuStubs_eta.clear();
+      _tkmuStubs_phi.clear();
+      _tkmuStubs_charge.clear();
+      _tkmuStubs_tkiso.clear();
+      _tkmuStubs_Vz.clear();
+      _tkmuStubs_Nmuons=0;
+
+  for(l1t::L1TkMuonParticleCollection::const_iterator it=muon->begin(); it!=muon->end() && _tkmuStubs_Nmuons < maxTkMuonStubs; it++){
+    //if (muonDetector==1 && fabs(it->eta())>=0.9) continue;
+    //if (muonDetector==3 && fabs(it->eta())<1.2) continue;
+
+    if (it->pt() > 0){
+      _tkmuStubs_pt.push_back(it->pt());
+      _tkmuStubs_eta.push_back(it->eta());
+      _tkmuStubs_phi.push_back(it->phi());
+      _tkmuStubs_charge.push_back(it->charge());
+      _tkmuStubs_tkiso.push_back(it->getTrkIsol());
+      _tkmuStubs_Vz.push_back(it->getTrkzVtx());
+      
+      _tkmuStubs_Nmuons++;
+
+    }
+
+  }
 }
 
 void L1MuGlobalNtupleMaker::SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonParticleCollection> muon, int maxTkGlbMuons)
@@ -719,21 +985,29 @@ void L1MuGlobalNtupleMaker::SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonPart
 }
 
 void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks)
+//void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> TTTrackHandle, int maxTTTracks)
 {
   _tttracks_pt.clear();
   _tttracks_eta.clear();
   _tttracks_phi.clear();
   _tttracks_chi2.clear();
+  //_tttracks_d0.clear();
+  _tttracks_z0.clear();
+  _tttracks_bendchi2.clear();
 
   _tttracks_Nmuons = 0;
 
+//  for (std::vector< TTTrack< Ref_Phase2TrackerDigi_ > >::const_iterator it=TTTrackHandle->begin(); it!=TTTrackHandle->end() && _tttracks_Nmuons < maxTTTracks; it++){
   for (TTTracksCollection::const_iterator it=muon->begin(); it!=muon->end() && _tttracks_Nmuons < maxTTTracks; it++){
+     //cout << "TTTrack found" <<endl;
 
     if (it->getMomentum().perp() > 0){
-      _tttracks_pt.push_back(it->getMomentum().perp()); //particle pT
-      _tttracks_eta.push_back(it->getMomentum().eta());
-      _tttracks_phi.push_back(it->getMomentum().phi());
+      _tttracks_pt.push_back(it->getMomentum(4).perp()); //particle pT
+      _tttracks_eta.push_back(it->getMomentum(4).eta());
+      _tttracks_phi.push_back(it->getMomentum(4).phi());
       _tttracks_chi2.push_back(it->getChi2());
+      _tttracks_bendchi2.push_back(it->getStubPtConsistency());     
+      _tttracks_z0.push_back(it->getPOCA(tk_nFitParams_).z());
 
       _tttracks_Nmuons++;
 

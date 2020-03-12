@@ -17,6 +17,8 @@ def customL1Emu(process, options):
     if options.doPhase2Emul :
 
         process.load('L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff')
-        process.L1TrackTrigger_step = cms.Path(process.L1TrackletTracksWithAssociators)
+        process.L1TrackTrigger_step = cms.Path(process.L1TrackletTracksWithAssociators)        
         process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
-
+        #process.load('L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff')
+        #process.TTTracksEmulation = cms.Path(process.offlineBeamSpot*process.TTTracksFromTrackletEmulation)
+        #process.VertexProducer.l1TracksInputTag =  cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
