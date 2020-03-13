@@ -1,7 +1,6 @@
-
 import FWCore.ParameterSet.Config as cms
 
-# General config options
+from Configuration.StandardSequences.Eras import eras
 import FWCore.ParameterSet.VarParsing as VarParsing
 import sys
 
@@ -13,42 +12,9 @@ options.register('globalTag',
                  VarParsing.VarParsing.varType.string,
                  "Global Tag")
 
-options.register('reEmulation',
-                 True, #default value
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.bool,
-                 "Run re-emulation")
 
-options.register('doPhase2Emul',
-                 True, #default value
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.bool,
-                 "Run the phase 2 re-emulation")
+process = cms.Process('REPR',eras.Phase2C8_trigger)
 
-options.register('redoPrimitives',
-                 False, #default value
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.bool,
-                 "Redo the primitives")
-
-options.register('runOnMC',
-                 True, #default value
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.bool,
-                 "Set to True when running on MC")
-
-options.parseArguments()
-
-
-from Configuration.ProcessModifiers.convertHGCalDigisSim_cff import convertHGCalDigisSim
-from Configuration.StandardSequences.Eras import eras
-
-
-if options.doPhase2Emul :
-    print "Using track trigger"
-    process = cms.Process('L1',eras.Phase2_trigger,convertHGCalDigisSim)
-else :
-    process = cms.Process('L1',eras.Phase2_timing,convertHGCalDigisSim)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -56,124 +22,87 @@ process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-#process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
-#process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
 process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
 process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
+process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.load('Configuration.StandardSequences.SimL1Emulator_cff')
-process.load('L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff')
+
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(100)
+)
 
 
-process.L1TrackTrigger_step = cms.Path(process.L1TrackletTracksWithAssociators)
-process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
-#process.L1TrackTrigger_step = cms.Path(process.offlineBeamSpot*process.TTTracksFromTrackletEmulation)
-#process.VertexProducer.l1TracksInputTag =  cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+# Input source
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v1/240000/F8F18CA1-4F51-2046-9A37-9BAD13CD84CF.root'),
+    secondaryFileNames = cms.untracked.vstring()
+)
 
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step2 nevts:1'),
+    annotation = cms.untracked.string('repr nevts:2'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
 
-#Import the emulation configuration
-from L1Trigger.L1MuGlobalNtuples.customL1Emu_cff import *
-customL1Emu(process, options)
+#output definition
+#process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
+#    dataset = cms.untracked.PSet(
+#        dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
+#        filterName = cms.untracked.string('')
+#    ),
+#    fileName = cms.untracked.string('file:TestGeometryD41_L1MuPhase2Ntuple_output.root.root'),
+#    outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
+#    splitLevel = cms.untracked.int32(0)
+#)
+
+process.TFileService = cms.Service('TFileService',
+    fileName = cms.string('Test_NewConfig_GeomD41.root')
+)
+
+
+#L1 tracking
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
+process.TTTracks = cms.Path(process.L1TrackletTracks) 
+process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
 
 print "Using GlobalTag", options.globalTag
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, options.globalTag, '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 
-# input source
-process.source = cms.Source("PoolSource",
-                             fileNames = cms.untracked.vstring ("/store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v1/240000/F8F18CA1-4F51-2046-9A37-9BAD13CD84CF.root"),
-#"root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/Mu_FlatPt2to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/60000/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root"),
-                             inputCommands = cms.untracked.vstring("keep *", 
-                                                                   "drop l1tHGCalTowerMapBXVector_hgcalTriggerPrimitiveDigiProducer_towerMap_HLT",
-                                                                   "drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT",
-                                                                   "drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT",
-                                                                   "drop l1tEMTFHit2016s_simEmtfDigis__HLT",
-                                                                   "drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT",
-                                                                   "drop l1tEMTFTrack2016s_simEmtfDigis__HLT"
-                                                                   )
-                             )
- 
 
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+# Path and EndPath definitions
+process.L1simulation_step = cms.Path(process.SimL1Emulator)
+process.endjob_step = cms.EndPath(process.endOfProcess)
+#process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
 
 #Import the ntuplizer
 process.load("L1Trigger.L1MuGlobalNtuples.L1MuGlobalNtupleMaker_cfi")
-
-# we don't have emtfDigis yet, use unpacked input payloads of GMT
-#process.L1MuGlobalNtupleMaker.emtfMuon = cms.InputTag("gmtStage2Digis","EMTF") 
-
 process.ntuplizer = cms.Path(process.L1MuGlobalNtupleMaker)
 
-# Output file
-process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string("TestGeometryD41_L1MuPhase2Ntuple_output.root")
-                                   )
-
-
-# print log
-process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
-
-
-
-if options.reEmulation :
-    if options.doPhase2Emul : 
-        print "Using Phase-2 emulation"
-        process.L1simulation_step = cms.Path(process.phase2_SimL1Emulator)
-    else : 
-        print "Using Phase-1 emulation"
-        process.L1simulation_step = cms.Path(process.SimL1Emulator)
-
-
-process.endjob_step = cms.EndPath(process.endOfProcess)
-
-
-# # --- save emulated objects in a root file 
-# process.outprova = cms.OutputModule("PoolOutputModule",
-#     dataset = cms.untracked.PSet(
-#         #dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
-#         #filterName = cms.untracked.string('')
-#     ),
-#     outputCommands = cms.untracked.vstring("keep *",
-#                                            "drop *_hgcalTriggerPrimitiveDigiProducer_*_*",  
-#                                            "drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT",
-#                                            "drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT",
-#                                            "drop l1tEMTFHit2016s_simEmtfDigis__HLT",
-#                                            "drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT",
-#                                            "drop l1tEMTFTrack2016s_simEmtfDigis__HLT"),
-#     fileName = cms.untracked.string('prova.root'),
-#     splitLevel = cms.untracked.int32(0)
-# )
-# process.outprova_step = cms.EndPath(process.outprova)
-
-
-
 # Schedule definition
-process.schedule = cms.Schedule()
+#process.schedule = cms.Schedule(process.L1simulation_step,process.endjob_step,process.FEVTDEBUGHLToutput_step)
+process.schedule = cms.Schedule(process.TTTracks, process.L1simulation_step, process.ntuplizer, process.endjob_step)
+from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
+associatePatAlgosToolsTask(process)
 
-if options.redoPrimitives :
-    print "Regenerating trigger primitives"
-    process.schedule.append(process.redoPrimitives_step)
+# Customisation from command line
 
-if options.doPhase2Emul :
-    process.schedule.append(process.L1TrackTrigger_step)
+from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet,L1TTurnOffHGCalTPs_v9,configureCSCLCTAsRun2
+process = L1TrackTriggerTracklet(process)
+#process = L1TTurnOffHGCalTPs_v9(process)
+from L1Trigger.L1TMuonEndCap.customise_Phase2 import customise as customise_Phase2
+process = customise_Phase2(process)
 
-if options.reEmulation :
-    process.schedule.append(process.L1simulation_step)
 
-process.schedule.append(process.ntuplizer)
-process.schedule.append(process.endjob_step)
-
-# --- save emulated objects in a root file 
-# process.schedule.append(process.outprova_step)
+# Add early deletion of temporary data products to reduce peak memory need
+#from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
+#process = customiseEarlyDelete(process)
+# End adding early deletion

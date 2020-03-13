@@ -41,6 +41,9 @@
 typedef math::XYZTLorentzVector LorentzVector;
 typedef vector<TTTrack<edm::Ref<edm::DetSetVector<Phase2TrackerDigi>,Phase2TrackerDigi,edm::refhelper::FindForDetSetVector<Phase2TrackerDigi> > > > TTTracksCollection;
 
+
+
+
 #include "L1MuGlobalNtupleMaker.h"
 
  
@@ -82,7 +85,7 @@ L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
   //_TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))),
 
   //ttTrackToken_(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("L1TrackInputTag"))),
- _TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("tttracks"))),
+  _TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("tttracks"))),
   _TrkG4PartsToken(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trkG4Parts")))
 {
   _pileupSummaryToken = consumes<std::vector<PileupSummaryInfo> >(edm::InputTag(_PileupSrc));
@@ -984,7 +987,7 @@ void L1MuGlobalNtupleMaker::SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonPart
 
 }
 
-void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks)
+void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> l1tks, int maxTTTracks)
 //void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> TTTrackHandle, int maxTTTracks)
 {
   _tttracks_pt.clear();
@@ -998,7 +1001,7 @@ void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> mu
   _tttracks_Nmuons = 0;
 
 //  for (std::vector< TTTrack< Ref_Phase2TrackerDigi_ > >::const_iterator it=TTTrackHandle->begin(); it!=TTTrackHandle->end() && _tttracks_Nmuons < maxTTTracks; it++){
-  for (TTTracksCollection::const_iterator it=muon->begin(); it!=muon->end() && _tttracks_Nmuons < maxTTTracks; it++){
+  for (TTTracksCollection::const_iterator it=l1tks->begin(); it!=l1tks->end() && _tttracks_Nmuons < maxTTTracks; it++){
      //cout << "TTTrack found" <<endl;
 
     if (it->getMomentum().perp() > 0){
