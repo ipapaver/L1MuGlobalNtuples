@@ -30,7 +30,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(10)
 )
 
 
@@ -48,17 +48,6 @@ process.configurationMetadata = cms.untracked.PSet(
     version = cms.untracked.string('$Revision: 1.19 $')
 )
 
-#output definition
-#process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
-#    dataset = cms.untracked.PSet(
-#        dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
-#        filterName = cms.untracked.string('')
-#    ),
-#    fileName = cms.untracked.string('file:TestGeometryD41_L1MuPhase2Ntuple_output.root.root'),
-#    outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
-#    splitLevel = cms.untracked.int32(0)
-#)
-
 process.TFileService = cms.Service('TFileService',
     fileName = cms.string('Test_NewConfig_GeomD41.root')
 )
@@ -66,8 +55,10 @@ process.TFileService = cms.Service('TFileService',
 
 #L1 tracking
 process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
-process.TTTracks = cms.Path(process.L1TrackletTracks) 
+process.TTTracks=cms.Path(process.L1TrackletTracks) #run only the tracking (no MC truth associators)
+process.TTTracksWithTruth=cms.Path(process.L1TrackletTracksWithAssociators) #run the tracking AND MC truth associators)
 process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
+#process.VertexProducer.l1TracksInputTagTruth = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
 
 print "Using GlobalTag", options.globalTag
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -76,33 +67,24 @@ process.GlobalTag = GlobalTag(process.GlobalTag, options.globalTag, '')
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
 process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 
-
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 # Path and EndPath definitions
 process.L1simulation_step = cms.Path(process.SimL1Emulator)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-#process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
 
 #Import the ntuplizer
 process.load("L1Trigger.L1MuGlobalNtuples.L1MuGlobalNtupleMaker_cfi")
 process.ntuplizer = cms.Path(process.L1MuGlobalNtupleMaker)
 
 # Schedule definition
-#process.schedule = cms.Schedule(process.L1simulation_step,process.endjob_step,process.FEVTDEBUGHLToutput_step)
 process.schedule = cms.Schedule(process.TTTracks, process.L1simulation_step, process.ntuplizer, process.endjob_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
-# Customisation from command line
-
-from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet,L1TTurnOffHGCalTPs_v9,configureCSCLCTAsRun2
-process = L1TrackTriggerTracklet(process)
-#process = L1TTurnOffHGCalTPs_v9(process)
 from L1Trigger.L1TMuonEndCap.customise_Phase2 import customise as customise_Phase2
 process = customise_Phase2(process)
 
 
-# Add early deletion of temporary data products to reduce peak memory need
-#from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
-#process = customiseEarlyDelete(process)
-# End adding early deletion
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool(True),
+)
+

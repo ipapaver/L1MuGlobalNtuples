@@ -24,8 +24,8 @@ private:
   void SetTkMuonStubsBMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsBMTF,unsigned int muonDetector);
   void SetTkMuonStubsEMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsEMTF,unsigned int muonDetector);
   void SetTkMuonStubsOMTF (const  edm::Handle<l1t::BayesMuCorrTrackBxCollection> muon, int maxTkMuonStubsOMTF,unsigned int muonDetector);
-  void SetTkMuonStubs (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubs,unsigned int muonDetector);
   void SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks);
+  //edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > l1tksTruthH;
   void SetTrkG4Parts(const edm::Handle<TrackingParticleCollection> muon, int maxTrkG4Parts);
 
   bool _RunningOnData;
@@ -166,15 +166,6 @@ private:
 
   short int _Kbmtfmu_Nmuons;
 
-//  //Tk muon
-//  std::vector<float> _tkmu_pt;
-//  std::vector<float> _tkmu_eta;
-//  std::vector<float> _tkmu_phi;
-//  std::vector<float> _tkmu_charge;
-//  std::vector<float> _tkmu_tkiso;
-//
-//  short int _tkmu_Nmuons;
-
    //Tk Muons
    short int _tkmu_Nmuons;
    std::vector<double>   _tkmu_pt;
@@ -208,14 +199,6 @@ private:
   std::vector<int>      _tkmuStubsOMTF_charge;
   std::vector<double>   _tkmuStubsOMTF_tkiso;
   std::vector<double>   _tkmuStubsOMTF_Vz;
-
-  short int _tkmuStubs_Nmuons;
-  std::vector<double>   _tkmuStubs_pt;
-  std::vector<double>   _tkmuStubs_eta;
-  std::vector<double>   _tkmuStubs_phi;
-  std::vector<int>      _tkmuStubs_charge;
-  std::vector<double>   _tkmuStubs_tkiso;
-  std::vector<double>   _tkmuStubs_Vz;
 
   //Tk Glb muon
   std::vector<float> _tkglbmu_pt;
@@ -260,8 +243,6 @@ private:
   edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsBMTFToken;
   edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsEMTFToken;
   edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsOMTFToken;
-  //edm::EDGetTokenT<l1t::L1TkMuonParticleCollection> _TkMuonStubsTokenME0;
-  //edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsTokenHSCP;
   edm::EDGetTokenT<l1t::L1TkGlbMuonParticleCollection> _TkGlbMuonToken;
   edm::EDGetTokenT<TTTracksCollection> _TTTracksToken;
   edm::EDGetTokenT<TrackingParticleCollection> _TrkG4PartsToken;
