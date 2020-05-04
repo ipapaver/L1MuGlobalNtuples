@@ -30,12 +30,13 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 
 # Input source
 process.source = cms.Source("PoolSource",
+    #fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v3/70001/FFB3195D-E113-3744-877D-44E21C060358.root'),
     fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v1/240000/F8F18CA1-4F51-2046-9A37-9BAD13CD84CF.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
@@ -49,7 +50,7 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 process.TFileService = cms.Service('TFileService',
-    fileName = cms.string('Test_NewConfig_GeomD41.root')
+    fileName = cms.string('L1PhaseII_MuNtuple_WToTauPU200.root')
 )
 
 
@@ -58,7 +59,7 @@ process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
 process.TTTracks=cms.Path(process.L1TrackletTracks) #run only the tracking (no MC truth associators)
 process.TTTracksWithTruth=cms.Path(process.L1TrackletTracksWithAssociators) #run the tracking AND MC truth associators)
 process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
-#process.VertexProducer.l1TracksInputTagTruth = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
+process.VertexProducer.l1TracksInputTagTruth = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
 
 print "Using GlobalTag", options.globalTag
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -76,7 +77,7 @@ process.load("L1Trigger.L1MuGlobalNtuples.L1MuGlobalNtupleMaker_cfi")
 process.ntuplizer = cms.Path(process.L1MuGlobalNtupleMaker)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.TTTracks, process.L1simulation_step, process.ntuplizer, process.endjob_step)
+process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1simulation_step, process.ntuplizer, process.endjob_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
