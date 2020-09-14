@@ -37,7 +37,17 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v3/70001/FFB3195D-E113-3744-877D-44E21C060358.root'),
-    fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v1/240000/F8F18CA1-4F51-2046-9A37-9BAD13CD84CF.root'),
+    fileNames = cms.untracked.vstring(#'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/B9884E68-F9B5-B848-9556-452C2AB52C84.root')
+       #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/B52E1F12-A560-224B-A38B-E9F2E6133EAC.root')
+        #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/AB71014C-B22F-774F-A9B2-07CFF437005E.root'),
+        # 'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/8814316D-B6F7-AE42-A468-082197102DD0.root'),
+        #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/AB71014C-B22F-774F-A9B2-07CFF437005E.root'),
+      # 'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/6349A636-3B9F-9E4C-A1E1-A5DE442F0024.root'), 
+       #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/55D564D5-B1B3-154B-A5E4-E9BE79BC24EE.root'), 
+       #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/53A20F2F-AC25-8D45-8EA5-F4DB771AEFA4.root'), 
+       #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/4D6EC762-2E17-9242-9C1C-7E4D1185C59C.root'), 
+        #'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/3560B68E-CA3B-E74D-B9F8-05EE3AC404C9.root'), 
+         'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRSpring19DR/WToTauTo3Mu_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/240000/2C499959-60EF-AC4D-8BE6-76C063A2B3DA.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -50,7 +60,7 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 process.TFileService = cms.Service('TFileService',
-    fileName = cms.string('L1PhaseII_MuNtuple_WToTauPU200.root')
+    fileName = cms.string('/eos/cms/store/user/ipapaver/TestPU0_localRun/WToTauTo3Mu_PU0_11.root')
 )
 
 
