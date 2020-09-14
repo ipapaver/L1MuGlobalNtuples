@@ -58,7 +58,7 @@ process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
 process.TTTracks=cms.Path(process.L1TrackletTracks) #run only the tracking (no MC truth associators)
 process.TTTracksWithTruth=cms.Path(process.L1TrackletTracksWithAssociators) #run the tracking AND MC truth associators)
 process.VertexProducer.l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks")
-#process.VertexProducer.l1TracksInputTagTruth = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
+process.VertexProducer.l1TracksInputTagTruth = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
 
 print "Using GlobalTag", options.globalTag
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -76,7 +76,7 @@ process.load("L1Trigger.L1MuGlobalNtuples.L1MuGlobalNtupleMaker_cfi")
 process.ntuplizer = cms.Path(process.L1MuGlobalNtupleMaker)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.TTTracks, process.L1simulation_step, process.ntuplizer, process.endjob_step)
+process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1simulation_step, process.ntuplizer, process.endjob_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 

@@ -38,6 +38,8 @@
  
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "DataFormats/L1TMuon/interface/BayesMuCorrelatorTrack.h"
+#include "SimTracker/TrackTriggerAssociation/interface/TTTrackAssociationMap.h"
+
 typedef math::XYZTLorentzVector LorentzVector;
 typedef vector<TTTrack<edm::Ref<edm::DetSetVector<Phase2TrackerDigi>,Phase2TrackerDigi,edm::refhelper::FindForDetSetVector<Phase2TrackerDigi> > > > TTTracksCollection;
 //typedef vector<TTTrackAssociationMap<edm::Ref<edm::DetSetVector<Phase2TrackerDigi>,Phase2TrackerDigi,edm::refhelper::FindForDetSetVector<Phase2TrackerDigi> > > > TTTracksTruthCollection;
@@ -49,6 +51,7 @@ typedef vector<TTTrack<edm::Ref<edm::DetSetVector<Phase2TrackerDigi>,Phase2Track
  
 // constructors and destructor
 L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
+
   _RunningOnData(iConfig.getParameter<bool>("RunningOnData")),
   _PU_scenario(iConfig.getParameter<int>("PileUpScenario")),
   _PileupSrc(iConfig.getParameter<edm::InputTag>("PileupSrc")),
@@ -80,6 +83,7 @@ L1MuGlobalNtupleMaker::L1MuGlobalNtupleMaker(const edm::ParameterSet& iConfig) :
   _TkMuonStubsOMTFToken(consumes<l1t::BayesMuCorrTrackBxCollection>(iConfig.getParameter<edm::InputTag>("tkMuonStubsOMTF"))),
   _TkGlbMuonToken(consumes<l1t::L1TkGlbMuonParticleCollection>(iConfig.getParameter<edm::InputTag>("tkGlbMuon"))),
   _TTTracksToken(consumes<TTTracksCollection>(iConfig.getParameter<edm::InputTag>("tttracks"))),
+  _TTTracksTruthToken(consumes< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > (iConfig.getParameter<edm::InputTag>("tttracksTruth"))),
  // _TTTrackTruthToken(TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >  (iConfig.getParameter<edm::InputTag>("tttracksTruth")))
   _TrkG4PartsToken(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trkG4Parts")))
 {
@@ -271,6 +275,12 @@ void L1MuGlobalNtupleMaker::create_trees()
   _mytree->Branch("tttracks_chi2",&_tttracks_chi2);
   _mytree->Branch("tttracks_z0",&_tttracks_z0);
   _mytree->Branch("tttracks_bendchi2",&_tttracks_bendchi2);
+  _mytree->Branch("tttracks_gen_qual",&_tttracks_gen_qual);
+  _mytree->Branch("tttracks_gen_TP_ID",&_tttracks_gen_TP_ID);
+  _mytree->Branch("tttracks_gen_TP_pt",&_tttracks_gen_TP_pt);
+  _mytree->Branch("tttracks_gen_TP_eta",&_tttracks_gen_TP_eta);
+  _mytree->Branch("tttracks_gen_TP_phi",&_tttracks_gen_TP_phi);
+  _mytree->Branch("tttracks_gen_TP_m",&_tttracks_gen_TP_m);
 
   _mytree->Branch("tttracks_Nmuons",&_tttracks_Nmuons);
 
@@ -319,6 +329,10 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<l1t::L1TkGlbMuonParticleCollection> TkGlbMuon;
   edm::Handle<TTTracksCollection> Tttrack;
   edm::Handle<TrackingParticleCollection> TrkG4Part;
+  edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > TttrackTruth;
+
+  iEvent.getByToken(_TTTracksTruthToken , TttrackTruth);
+//  const auto &l1tkstruth = (*TttrackTruth.product());
 
   iEvent.getByToken(_genParticleToken, genParticles);
   iEvent.getByToken(_L1MuonToken,      L1muon);
@@ -334,8 +348,6 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(_TkMuonStubsOMTFToken,TkMuonStubsOMTF);
   iEvent.getByToken(_TkGlbMuonToken,   TkGlbMuon);
   iEvent.getByToken(_TTTracksToken,    Tttrack);
-  //iEvent.getByToken(_TTTracksTruthToken, l1tksTruthH);
-  //const auto &l1tkstruth = (*l1tksTruthH.product());
   iEvent.getByToken(_TrkG4PartsToken,  TrkG4Part);
 
   if(genParticles.isValid()){
@@ -407,7 +419,8 @@ void L1MuGlobalNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSe
     edm::LogWarning("MissingProduct") << "L1 Phase2 TkGlbMuons not found. Branch will not be filled" << std::endl;
   }
   if(Tttrack.isValid()){
-    SetTTTracks(Tttrack, _maxTTTracks);
+    //SetTTTracksTruth(TttrackTruth);
+    SetTTTracks(Tttrack, _maxTTTracks, TttrackTruth);
   }
    else{
     edm::LogWarning("MissingProduct") << "L1 Phase2 Tttrack not found. Branch will not be filled" << std::endl;
@@ -911,7 +924,11 @@ void L1MuGlobalNtupleMaker::SetTkGlbMuons(const edm::Handle<l1t::L1TkGlbMuonPart
 
 }
 
-void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> l1tks, int maxTTTracks)
+
+//void L1MuGlobalNtupleMaker::SetTTTracksTruth(const edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > l1tksTruthH){
+//  const auto &truthmap = (*l1tksTruthH.product()).getTTTrackToTrackingParticleMap();} 
+//const auto &truthmap = l1tkstruth.getTTTrackToTrackingParticleMap();
+void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> l1tks, int maxTTTracks,const edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > trackTruth)
 {
   _tttracks_pt.clear();
   _tttracks_eta.clear();
@@ -919,11 +936,19 @@ void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> l1
   _tttracks_chi2.clear();
   _tttracks_z0.clear();
   _tttracks_bendchi2.clear();
+  _tttracks_gen_qual.clear();
+  _tttracks_gen_TP_ID.clear();
+  _tttracks_gen_TP_pt.clear();
+  _tttracks_gen_TP_eta.clear();
+  _tttracks_gen_TP_phi.clear();
+  _tttracks_gen_TP_m.clear();
 
   _tttracks_Nmuons = 0;
 
   for (TTTracksCollection::const_iterator it=l1tks->begin(); it!=l1tks->end() && _tttracks_Nmuons < maxTTTracks; it++){
     if (it->getMomentum().perp() > 0){
+
+      const auto &truthmap = (TttrackTruth.product())->getTTTrackToTrackingParticleMap();
       _tttracks_pt.push_back(it->getMomentum(4).perp()); //particle pT
       _tttracks_eta.push_back(it->getMomentum(4).eta());
       _tttracks_phi.push_back(it->getMomentum(4).phi());
@@ -931,7 +956,43 @@ void L1MuGlobalNtupleMaker::SetTTTracks(const edm::Handle<TTTracksCollection> l1
       _tttracks_bendchi2.push_back(it->getStubPtConsistency());     
       _tttracks_z0.push_back(it->getPOCA(tk_nFitParams_).z());
 
+     //const edm::Ptr<TTTrack< Ref_Phase2TrackerDigi_ > > trkEdmPtr(Tttrack, it);
+     int trkgenqual = 0;
+     if ((trackTruth).isGenuine(it))
+        trkgenqual |= (1 << 0);
+     if ((trackTruth).isCombinatoric(it))
+        trkgenqual |= (1 << 1);
+     if ((trackTruth).isUnknown(it))
+        trkgenqual |= (1 << 2);
+
+     _tttracks_gen_qual.push_back(trkgenqual);
+     bool has_matched_trk = (truthmap.find(it) != truthmap.end());
+
+     int   gen_TP_ID   = -999;
+     float gen_TP_pt   = -999.; 
+     float gen_TP_eta  = -999.;  
+     float gen_TP_phi  = -999.;  
+     float gen_TP_m    = -999.; 
+            
+     if (has_matched_trk)
+     {
+        const auto matchedTP = truthmap.at(trkEdmPtr);
+        _tttracks_gen_TP_ID  = matchedTP->pdgId() ;
+        _tttracks_gen_TP_pt  = matchedTP->p4().pt() ;
+        _tttracks_gen_TP_eta = matchedTP->p4().eta() ;
+        _tttracks_gen_TP_phi = matchedTP->p4().phi() ;
+        _tttracks_gen_TP_m   = matchedTP->p4().mass() ;
+      }
+
+
+     _tttracks_gen_TP_ID.push_back (gen_TP_ID);
+     _tttracks_gen_TP_pt. push_back (gen_TP_pt);
+     _tttracks_gen_TP_eta.push_back (gen_TP_eta);
+     _tttracks_gen_TP_phi.push_back (gen_TP_phi);
+     _tttracks_gen_TP_m.push_back (gen_TP_m);
+
       _tttracks_Nmuons++;
+     
 
 
     }

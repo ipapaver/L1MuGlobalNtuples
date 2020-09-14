@@ -24,8 +24,7 @@ private:
   void SetTkMuonStubsBMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsBMTF,unsigned int muonDetector);
   void SetTkMuonStubsEMTF (const  edm::Handle<l1t::L1TkMuonParticleCollection> muon, int maxTkMuonStubsEMTF,unsigned int muonDetector);
   void SetTkMuonStubsOMTF (const  edm::Handle<l1t::BayesMuCorrTrackBxCollection> muon, int maxTkMuonStubsOMTF,unsigned int muonDetector);
-  void SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks);
-  //edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > l1tksTruthH;
+  void SetTTTracks(const edm::Handle<TTTracksCollection> muon, int maxTTTracks, const edm::Handle<TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > muonTruth);
   void SetTrkG4Parts(const edm::Handle<TrackingParticleCollection> muon, int maxTrkG4Parts);
 
   bool _RunningOnData;
@@ -216,6 +215,12 @@ private:
   std::vector<float> _tttracks_chi2;  
   std::vector<float> _tttracks_z0; 
   std::vector<float> _tttracks_bendchi2;
+  std::vector<int>   _tttracks_gen_qual;
+  std::vector<int>   _tttracks_gen_TP_ID;
+  std::vector<float> _tttracks_gen_TP_pt;
+  std::vector<float> _tttracks_gen_TP_eta;
+  std::vector<float> _tttracks_gen_TP_phi;
+  std::vector<float> _tttracks_gen_TP_m;;
 
   short int _tttracks_Nmuons;
 
@@ -245,6 +250,7 @@ private:
   edm::EDGetTokenT<l1t::BayesMuCorrTrackBxCollection> _TkMuonStubsOMTFToken;
   edm::EDGetTokenT<l1t::L1TkGlbMuonParticleCollection> _TkGlbMuonToken;
   edm::EDGetTokenT<TTTracksCollection> _TTTracksToken;
+  edm::EDGetTokenT<TTTrackAssociationMap< Ref_Phase2TrackerDigi_> > _TTTracksTruthToken;
   edm::EDGetTokenT<TrackingParticleCollection> _TrkG4PartsToken;
 
 };
